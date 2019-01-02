@@ -1,0 +1,65 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: robot-deployment
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: robot
+  template:
+    metadata:
+      labels:
+        app: robot
+    spec:
+      containers:
+      - image: photosbyd/robot-service:0.1
+        name: robot
+        env:
+        - name: KUMULUZEE_DISCOVERY_CLUSTER
+          value: gcloud
+        - name: KUMULUZEE_DISCOVERY_ETCD_HOSTS
+          value: http://etcd:2379
+        - name: KUMULUZEE_CONFIG_ETCD_HOSTS
+          value: http://etcd:2379
+        - name: KUMULUZEE_SERVER_BASEURL
+          value: http://159.122.187.8:31389
+        - name: KUMULUZEE_DATASOURCES0_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: rapid-api-key
+              key: KUMULUZEE_DATASOURCES0_PASSWORD
+        - name: KUMULUZEE_DATASOURCES0_CONNECTIONURL
+          value: jdbc:postgresql://sl-eu-gb-p02.dblayer.com:15881/compose
+        - name: KUMULUZEE_DATASOURCES0_USERNAME
+          value: admin
+        - name: APPPROPERTIES_APIKEY_RAPID
+          valueFrom:
+            secretKeyRef:
+              name: pg-pass
+              key: RAPID_API_KEY
+        ports:
+        - containerPort: 8085
+          name: server
+          protocol: TCP
+        livenessProbe:
+          httpGet:
+            path: /health
+            port: server
+          initialDelaySeconds: 20
+          periodSeconds: 3
+
+---
+
+apiVersion: v1
+kind: Service
+metadata:
+  name: user
+spec:
+  type: NodePort
+  ports:
+  - port: 8085
+    protocol: TCP
+    targetPort: 8085
+  selector:
+    app: robot
