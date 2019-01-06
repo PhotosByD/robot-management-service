@@ -8,4 +8,4 @@ ADD ./api/target/robot-api-1.0.0-SNAPSHOT.jar /app
 
 EXPOSE 8085
 
-CMD java -jar album-api-1.0.0-SNAPSHOT.jar
+CMD java -jar robot-api-1.0.0-SNAPSHOT.jar
